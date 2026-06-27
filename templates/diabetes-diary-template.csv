@@ -1,0 +1,2 @@
+date,time,glucose,glucose_unit,carbs_g,insulin_units,insulin_type,meal,activity,notes
+2026-06-25,08:00,110,mg/dL,45,4.5,rapid,breakfast,light,Example row. Delete before importing.

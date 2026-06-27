@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Type 1 Diabetes Manager</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Local-first care journal</p>
+          <h1>Type 1 Diabetes Manager</h1>
+          <p class="profile-line" id="profileLine"></p>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="themeToggleButton" title="Toggle dark mode" aria-label="Toggle dark mode">
+            <span aria-hidden="true">☀️</span>
+          </button>
+          <button class="icon-button" id="exportJsonButton" title="Export JSON" aria-label="Export JSON">
+            <span aria-hidden="true">↓</span>
+          </button>
+          <label class="icon-button file-button" title="Import JSON" aria-label="Import JSON">
+            <span aria-hidden="true">↑</span>
+            <input type="file" id="importJsonInput" accept="application/json" />
+          </label>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Application views">
+        <button class="tab is-active" data-view="dashboard">Dashboard</button>
+        <button class="tab" data-view="logbook">Logbook</button>
+        <button class="tab" data-view="insights">Insights</button>
+        <button class="tab" data-view="settings">Settings</button>
+      </nav>
+
+      <main>
+        <section class="view is-active" id="dashboardView" aria-labelledby="dashboardTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Today</p>
+              <h2 id="dashboardTitle">Your diabetes snapshot</h2>
+            </div>
+            <button class="primary-button" data-jump="logbook">Add entry</button>
+          </div>
+
+          <div class="metric-grid" id="metricGrid"></div>
+
+          <div class="dashboard-grid">
+            <section class="panel chart-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Glucose</p>
+                  <h3>Recent readings</h3>
+                </div>
+                <span class="range-pill" id="targetRangeLabel"></span>
+              </div>
+              <canvas id="glucoseChart" width="900" height="360" aria-label="Glucose trend chart"></canvas>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Safety</p>
+                  <h3>Needs attention</h3>
+                </div>
+              </div>
+              <div id="attentionList" class="attention-list"></div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Distribution</p>
+                <h3>Glucose status breakdown</h3>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="distributionChart" width="300" height="200" aria-label="Glucose distribution chart"></canvas>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Statistics</p>
+                <h3>7-day analysis</h3>
+              </div>
+            </div>
+            <div class="stats-grid" id="statsGrid"></div>
+          </section>
+        </section>
+
+        <section class="view" id="logbookView" aria-labelledby="logbookTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Record</p>
+              <h2 id="logbookTitle">Glucose, insulin, meals, activity</h2>
+            </div>
+            <div class="filter-row">
+              <button class="secondary-button" id="templateCsvButton">Template CSV</button>
+              <label class="secondary-button file-label">
+                Import CSV
+                <input type="file" id="importCsvInput" accept=".csv,text/csv" />
+              </label>
+              <button class="secondary-button" id="exportCsvButton">Export CSV</button>
+            </div>
+          </div>
+
+          <div class="workspace-grid">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Quick log</p>
+                  <h3 id="entryFormTitle">New entry</h3>
+                </div>
+                <button class="ghost-button" id="resetEntryButton" type="button">Reset</button>
+              </div>
+
+              <form id="entryForm" class="entry-form">
+                <input type="hidden" id="entryId" />
+                <div class="field-pair">
+                  <label>
+                    Date
+                    <input type="date" id="entryDate" required />
+                  </label>
+                  <label>
+                    Time
+                    <input
+                      class="time-input"
+                      type="text"
+                      id="entryTime"
+                      inputmode="numeric"
+                      pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                      placeholder="HH:MM"
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div class="field-pair">
+                  <label>
+                    Glucose <span class="unitLabel"></span>
+                    <input type="number" id="entryGlucose" min="0" step="0.1" placeholder="110" required />
+                  </label>
+                  <label>
+                    Meal timing
+                    <select id="entryMealTiming">
+                      <option value="none">Not set</option>
+                      <option value="before_meal">Before meal</option>
+                      <option value="after_meal">After meal</option>
+                      <option value="fasting">Fasting</option>
+                      <option value="bedtime">Bedtime</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-pair">
+                  <label>
+                    Insulin units
+                    <input type="number" id="entryInsulin" min="0" step="0.1" placeholder="4.5" />
+                  </label>
+                  <label>
+                    Insulin type
+                    <select id="entryInsulinType">
+                      <option value="rapid">Rapid acting</option>
+                      <option value="basal">Basal</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-pair">
+                  <label>
+                    Meal
+                    <select id="entryMeal">
+                      <option value="none">No meal</option>
+                      <option value="breakfast">Breakfast</option>
+                      <option value="lunch">Lunch</option>
+                      <option value="dinner">Dinner</option>
+                      <option value="snack">Snack</option>
+                    </select>
+                  </label>
+                  <label>
+                    Activity
+                    <select id="entryActivity">
+                      <option value="none">None</option>
+                      <option value="light">Light</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label>
+                  Notes
+                  <textarea id="entryNotes" rows="3" placeholder="Symptoms, site change, illness, stress, unusual food..."></textarea>
+                </label>
+
+                <button class="primary-button full-width" type="submit">Save entry</button>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Estimate</p>
+                  <h3>Bolus helper</h3>
+                </div>
+              </div>
+              <p class="safety-note">
+                For record keeping only. Use ratios and correction factors agreed with your diabetes clinician.
+              </p>
+              <form id="doseForm" class="entry-form">
+                <div class="field-pair">
+                  <label>
+                    Current glucose <span class="unitLabel"></span>
+                    <input type="number" id="doseGlucose" min="0" step="0.1" />
+                  </label>
+                  <label>
+                    Carbs (g)
+                    <input type="number" id="doseCarbs" min="0" step="1" />
+                  </label>
+                </div>
+                <label>
+                  Active insulin (units)
+                  <input type="number" id="doseIob" min="0" step="0.1" value="0" />
+                </label>
+                <div class="dose-result" id="doseResult">
+                  <span>Estimated bolus</span>
+                  <strong>--</strong>
+                </div>
+              </form>
+            </section>
+          </div>
+
+          <section class="panel table-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">History</p>
+                <h3>Recent entries</h3>
+              </div>
+              <div class="filter-row">
+                <input type="search" id="entrySearch" placeholder="Search notes or meal" />
+                <select id="entryRange">
+                  <option value="all">All entries</option>
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="90">Last 90 days</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Glucose</th>
+                    <th>Timing</th>
+                    <th>Insulin</th>
+                    <th>Meal</th>
+                    <th>Activity</th>
+                    <th>Notes</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="entriesTable"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="insightsView" aria-labelledby="insightsTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Patterns</p>
+              <h2 id="insightsTitle">Trends and daily rhythms</h2>
+            </div>
+          </div>
+          <div class="insights-grid" id="insightsGrid"></div>
+        </section>
+
+        <section class="view" id="settingsView" aria-labelledby="settingsTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Personalize</p>
+              <h2 id="settingsTitle">Targets, ratios, reminders</h2>
+            </div>
+          </div>
+
+          <section class="panel settings-panel">
+            <form id="settingsForm" class="settings-grid">
+              <label>
+                Profile name
+                <input type="text" id="settingProfileName" placeholder="My profile" />
+              </label>
+              <label>
+                Diabetes type
+                <select id="settingDiabetesType">
+                  <option value="Type 1">Type 1</option>
+                  <option value="Type 2">Type 2</option>
+                  <option value="Gestational">Gestational</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label>
+                Timezone
+                <input type="text" id="settingTimezone" placeholder="Asia/Kolkata" />
+              </label>
+              <label>
+                Glucose unit
+                <select id="settingUnit">
+                  <option value="mg/dL">mg/dL</option>
+                  <option value="mmol/L">mmol/L</option>
+                </select>
+              </label>
+              <label>
+                Low threshold
+                <input type="number" id="settingLow" min="0" step="0.1" required />
+              </label>
+              <label>
+                Target low
+                <input type="number" id="settingTargetLow" min="0" step="0.1" required />
+              </label>
+              <label>
+                Target high
+                <input type="number" id="settingTargetHigh" min="0" step="0.1" required />
+              </label>
+              <label>
+                High threshold
+                <input type="number" id="settingHigh" min="0" step="0.1" required />
+              </label>
+              <label>
+                Carb ratio (g/unit)
+                <input type="number" id="settingCarbRatio" min="1" step="0.1" required />
+              </label>
+              <label>
+                Correction factor
+                <input type="number" id="settingCorrectionFactor" min="0.1" step="0.1" required />
+              </label>
+              <label>
+                Correction target
+                <input type="number" id="settingCorrectionTarget" min="0" step="0.1" required />
+              </label>
+              <label>
+                Rapid insulin duration (hours)
+                <input type="number" id="settingInsulinDuration" min="1" max="8" step="0.5" required />
+              </label>
+              <label>
+                Basal reminder time
+                <input type="time" id="settingBasalTime" />
+              </label>
+              <label>
+                Check reminder interval (hours)
+                <input type="number" id="settingCheckInterval" min="1" max="24" step="1" />
+              </label>
+              <div class="settings-actions">
+                <button class="primary-button" type="submit">Save settings</button>
+                <button class="danger-button" id="clearDataButton" type="button">Clear all data</button>
+              </div>
+            </form>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="emptyStateTemplate">
+      <tr>
+        <td colspan="8" class="empty-state">No entries yet. Add your first reading to start seeing trends.</td>
+      </tr>
+    </template>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
