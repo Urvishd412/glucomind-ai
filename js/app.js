@@ -537,6 +537,7 @@ function renderMetrics() {
   const hba1cValue = weekStats.count ? estimateHbA1c(weekStats.avg) : NaN;
   const hba1cInfo = Number.isFinite(hba1cValue) ? getHbA1cCategory(hba1cValue) : null;
 
+  // 6 Key Metrics for the Dashboard
   const metrics = [
     {
       icon: "🩸",
@@ -551,16 +552,10 @@ function renderMetrics() {
       detail: `${todayStats.count} reading${todayStats.count !== 1 ? "s" : ""}`,
     },
     {
-      icon: "💉",
-      label: "Today's insulin",
-      value: `${formatNumber(todayStats.insulin, 1)} u`,
-      detail: `${formatNumber(todayStats.carbs, 0)} g carbs`,
-    },
-    {
-      icon: "🍽️",
-      label: "Today's carbs",
-      value: `${formatNumber(todayStats.carbs, 0)} g`,
-      detail: `${todayStats.count} entries`,
+      icon: "📈",
+      label: "Time in range",
+      value: weekStats.count ? `${weekStats.inRangePercent}%` : "--",
+      detail: `7-day average`,
     },
     {
       icon: "🧬",
@@ -569,22 +564,16 @@ function renderMetrics() {
       detail: hba1cInfo ? `${hba1cInfo.emoji} ${hba1cInfo.category}` : "Need more data",
     },
     {
-      icon: "📈",
-      label: "Time in range",
-      value: weekStats.count ? `${weekStats.inRangePercent}%` : "--",
-      detail: `${weekStats.lows} low, ${weekStats.highs} high`,
+      icon: "🍽️",
+      label: "Total carbs today",
+      value: `${formatNumber(todayStats.carbs, 0)} g`,
+      detail: `${todayStats.count} entries`,
     },
     {
-      icon: "⏰",
-      label: "Latest reading",
-      value: latest ? formatDateTime(latest.datetime) : "No data",
-      detail: latest ? `${(new Date() - new Date(latest.datetime)) / 36e5 < 24 ? "Today" : "Earlier"}` : "",
-    },
-    {
-      icon: "📅",
-      label: "Weekly average",
-      value: weekStats.count ? `${formatNumber(weekStats.avg, state.settings.unit === "mmol/L" ? 1 : 0)} ${state.settings.unit}` : "--",
-      detail: `${weekStats.count} readings`,
+      icon: "💉",
+      label: "Total insulin today",
+      value: `${formatNumber(todayStats.insulin, 1)} u`,
+      detail: `${formatNumber(todayStats.carbs, 0)} g carbs`,
     },
   ];
 
@@ -1076,9 +1065,11 @@ function renderAll() {
   renderChart();
   renderDistributionChart();
   renderStatistics();
+  renderRecentEntries();
   renderEntriesTable();
   renderInsights();
   renderDoseEstimate();
+  setupDashboardEventListeners();
 }
 
 function resetEntryForm() {

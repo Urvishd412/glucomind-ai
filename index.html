@@ -46,8 +46,43 @@
             <button class="primary-button" data-jump="logbook">Add entry</button>
           </div>
 
+          <!-- Primary Metrics Grid -->
           <div class="metric-grid" id="metricGrid"></div>
 
+          <!-- Quick Actions Section -->
+          <section class="quick-actions-panel">
+            <div class="quick-actions-content">
+              <button class="quick-action-button" data-action="add-glucose" title="Log a glucose reading">
+                <span class="action-icon">🩸</span>
+                <span class="action-label">Log Glucose</span>
+              </button>
+              <button class="quick-action-button" data-action="add-meal" title="Log a meal">
+                <span class="action-icon">🍽️</span>
+                <span class="action-label">Log Meal</span>
+              </button>
+              <button class="quick-action-button" data-action="add-insulin" title="Log insulin dose">
+                <span class="action-icon">💉</span>
+                <span class="action-label">Log Insulin</span>
+              </button>
+              <button class="quick-action-button" data-action="view-logbook" title="Open full logbook">
+                <span class="action-icon">📔</span>
+                <span class="action-label">Full Logbook</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- Recent Entries Panel -->
+          <section class="panel recent-entries">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Recent</p>
+                <h3>Latest entries</h3>
+              </div>
+            </div>
+            <div id="recentEntriesPanel" class="recent-entries-container"></div>
+          </section>
+
+          <!-- Glucose Trend Chart -->
           <div class="dashboard-grid">
             <section class="panel chart-panel">
               <div class="panel-heading">
@@ -71,6 +106,7 @@
             </section>
           </div>
 
+          <!-- Distribution Chart -->
           <section class="panel">
             <div class="panel-heading">
               <div>
@@ -83,6 +119,7 @@
             </div>
           </section>
 
+          <!-- Statistics Panel -->
           <section class="panel">
             <div class="panel-heading">
               <div>
